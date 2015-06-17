@@ -180,7 +180,7 @@ class Serializer implements SerializerInterface
     {
         // This is a special case if the root is handled by a callback on the object itself or
         // the navigator result is a traversable object.
-        if (((null === $visitorResult = $visitor->getResult()) || $navigatorResult instanceof \Traversable) && null !== $navigatorResult) {
+        if ((null === $visitorResult || $navigatorResult instanceof \Traversable) && null !== $navigatorResult) {
             return $navigatorResult;
         }
 
