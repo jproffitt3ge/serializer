@@ -25,7 +25,6 @@ use JMS\Serializer\EventDispatcher\EventDispatcherInterface;
 use JMS\Serializer\Exception\UnsupportedFormatException;
 use Metadata\MetadataFactoryInterface;
 use PhpCollection\MapInterface;
-use Doctrine\Common\Collections\Collection;
 
 /**
  * Serializer Implementation.
@@ -179,8 +178,9 @@ class Serializer implements SerializerInterface
 
     private function handleDeserializeResult($visitorResult, $navigatorResult)
     {
-        // This is a special case if the root is handled by a callback on the object itself.
-        if (((null === $visitorResult = $visitor->getResult()) || $navigatorResult instanceof Collection) && null !== $navigatorResult) {
+        // This is a special case if the root is handled by a callback on the object itself or
+        // the navigator result is a traversable object.
+        if (((null === $visitorResult = $visitor->getResult()) || $navigatorResult instanceof \Traversable) && null !== $navigatorResult) {
             return $navigatorResult;
         }
 
