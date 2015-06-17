@@ -25,6 +25,7 @@ use JMS\Serializer\EventDispatcher\EventDispatcherInterface;
 use JMS\Serializer\Exception\UnsupportedFormatException;
 use Metadata\MetadataFactoryInterface;
 use PhpCollection\MapInterface;
+use Doctrine\Common\Collections\Collection;
 
 /**
  * Serializer Implementation.
@@ -50,13 +51,13 @@ class Serializer implements SerializerInterface
     /**
      * Constructor.
      *
-     * @param \Metadata\MetadataFactoryInterface $factory
-     * @param Handler\HandlerRegistryInterface $handlerRegistry
-     * @param Construction\ObjectConstructorInterface $objectConstructor
-     * @param \PhpCollection\MapInterface $serializationVisitors of VisitorInterface
-     * @param \PhpCollection\MapInterface $deserializationVisitors of VisitorInterface
+     * @param \Metadata\MetadataFactoryInterface       $factory
+     * @param Handler\HandlerRegistryInterface         $handlerRegistry
+     * @param Construction\ObjectConstructorInterface  $objectConstructor
+     * @param \PhpCollection\MapInterface              $serializationVisitors   of VisitorInterface
+     * @param \PhpCollection\MapInterface              $deserializationVisitors of VisitorInterface
      * @param EventDispatcher\EventDispatcherInterface $dispatcher
-     * @param TypeParser $typeParser
+     * @param TypeParser                               $typeParser
      */
     public function __construct(MetadataFactoryInterface $factory, HandlerRegistryInterface $handlerRegistry, ObjectConstructorInterface $objectConstructor, MapInterface $serializationVisitors, MapInterface $deserializationVisitors, EventDispatcherInterface $dispatcher = null, TypeParser $typeParser = null)
     {
@@ -78,7 +79,7 @@ class Serializer implements SerializerInterface
         }
 
         return $this->serializationVisitors->get($format)
-            ->map(function(VisitorInterface $visitor) use ($context, $data, $format) {
+            ->map(function (VisitorInterface $visitor) use ($context, $data, $format) {
                 $this->visit($visitor, $context, $visitor->prepare($data), $format);
 
                 return $visitor->getResult();
@@ -94,7 +95,7 @@ class Serializer implements SerializerInterface
         }
 
         return $this->deserializationVisitors->get($format)
-            ->map(function(VisitorInterface $visitor) use ($context, $data, $format, $type) {
+            ->map(function (VisitorInterface $visitor) use ($context, $data, $format, $type) {
                 $preparedData = $visitor->prepare($data);
                 $navigatorResult = $this->visit($visitor, $context, $preparedData, $format, $this->typeParser->parse($type));
 
@@ -120,7 +121,7 @@ class Serializer implements SerializerInterface
         }
 
         return $this->serializationVisitors->get('json')
-            ->map(function(JsonSerializationVisitor $visitor) use ($context, $data) {
+            ->map(function (JsonSerializationVisitor $visitor) use ($context, $data) {
                 $this->visit($visitor, $context, $data, 'json');
                 $result = $this->convertArrayObjects($visitor->getRoot());
 
@@ -141,7 +142,7 @@ class Serializer implements SerializerInterface
     /**
      * Restores objects from an array structure.
      *
-     * @param array $data
+     * @param array  $data
      * @param string $type
      *
      * @return mixed this returns whatever the passed type is, typically an object or an array of objects
@@ -153,7 +154,7 @@ class Serializer implements SerializerInterface
         }
 
         return $this->deserializationVisitors->get('json')
-            ->map(function(JsonDeserializationVisitor $visitor) use ($data, $type, $context) {
+            ->map(function (JsonDeserializationVisitor $visitor) use ($data, $type, $context) {
                 $navigatorResult = $this->visit($visitor, $context, $data, 'json', $this->typeParser->parse($type));
 
                 return $this->handleDeserializeResult($visitor->getResult(), $navigatorResult);
@@ -179,7 +180,7 @@ class Serializer implements SerializerInterface
     private function handleDeserializeResult($visitorResult, $navigatorResult)
     {
         // This is a special case if the root is handled by a callback on the object itself.
-        if (null === $visitorResult && null !== $navigatorResult) {
+        if (((null === $visitorResult = $visitor->getResult()) || $navigatorResult instanceof Collection) && null !== $navigatorResult) {
             return $navigatorResult;
         }
 

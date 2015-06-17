@@ -79,7 +79,7 @@ final class GraphNavigator
     /**
      * Called for each node of the graph that is being traversed.
      *
-     * @param mixed $data the data depends on the direction, and type of visitor
+     * @param mixed      $data the data depends on the direction, and type of visitor
      * @param null|array $type array has the format ["name" => string, "params" => array]
      *
      * @return mixed the return value depends on the direction, and type of visitor
@@ -139,7 +139,7 @@ final class GraphNavigator
             default:
                 // TODO: The rest of this method needs some refactoring.
                 if ($context instanceof SerializationContext) {
-                    if (null !== $data) {
+                    if (null !== $data && is_object($data)) {
                         if ($context->isVisiting($data)) {
                             return null;
                         }
@@ -283,7 +283,9 @@ final class GraphNavigator
     private function leaveScope(Context $context, $data)
     {
         if ($context instanceof SerializationContext) {
-            $context->stopVisiting($data);
+            if (is_object($data)) {
+                $context->stopVisiting($data);
+            }
         } elseif ($context instanceof DeserializationContext) {
             $context->decreaseDepth();
         }
